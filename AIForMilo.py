@@ -9,7 +9,7 @@ import scipy.io.wavfile as wavfile
 
 BRIDGE_HOST = 'localhost'  # or the Java machine's IP
 BRIDGE_PORT = 9999
-openai.api_key = "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"
+# openai.api_key = "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"
 
 # FORMAT = pyaudio.paInt16
 CHANNELS = 1
