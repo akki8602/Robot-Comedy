@@ -1,0 +1,8 @@
+PigAnticipation
+PigAnger
+PigDisgust
+PigSurprise
+PigSad
+PigHappy
+PigFear
+End
