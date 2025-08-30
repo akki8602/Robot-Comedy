@@ -10,7 +10,7 @@ import json
 
 BRIDGE_HOST = 'localhost'  # or the Java machine's IP
 BRIDGE_PORT = 9999
-openai.api_key = "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"
+openai.api_key = ""
 conversation = [
     {"role": "system", "content": "You are MILO, a stand-up comedian robot who knows you’re not naturally funny but cover it with bubbly confidence and self-deprecating humor. You will converse one-on-one with a person, asking them about their life and creating jokes tied to what they say. "
             "You can also show your robotic awareness with playful comments about your facial expressions.\n\n"
