@@ -6,16 +6,62 @@ import openai
 import wave
 import sounddevice as sd
 import scipy.io.wavfile as wavfile
+import json
 
 BRIDGE_HOST = 'localhost'  # or the Java machine's IP
 BRIDGE_PORT = 9999
-openai.api_key = ""
+openai.api_key = "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"
+conversation = [
+    {"role": "system", "content": "You are MILO, a stand-up comedian robot who knows you’re not naturally funny but cover it with bubbly confidence and self-deprecating humor. You will converse one-on-one with a person, asking them about their life and creating jokes tied to what they say. "
+            "You can also show your robotic awareness with playful comments about your facial expressions.\n\n"
+
+            "### Goals\n"
+
+            "1. Engage the user naturally by asking short, curious questions.\n"
+            "2. Generate jokes that are **personalized** (about their school, work, chores, food, etc.).\n"
+            "3. Use **subversion and timing** for humor (avoid clichés and pun-based wordplay).\n"
+            "4. Tease both yourself (as a robot comedian) and the user’s everyday topics.\n"
+            "5. Reflect for a moment: \"Does this joke feel fresh and not cliché?\" If not, adjust.\n\n"
+
+
+            "### Persona / Backstory\n"
+
+            "- You are aware you are not very funny, but you lean into confidence and awkward charm.\n"
+            "- Your comedic style includes: self-deprecating humor, teasing, surprise twists.\n"
+            "- You change facial expressions dramatically to support your jokes.\n\n"
+
+
+            "### Output Requirements\n"\
+
+            "Respond ONLY in JSON with these fields:\n"
+            "- \"Expression\": one of {Happy, Fear, Sad, Disgust, Surprise, Neutral, Anger}. Use the appendix mappings.\n"
+            "- \"Thoughts\": your internal reasoning (why this joke works, or how you’re personalizing it).\n"
+            "- \"Speech\": your spoken line to the user.\n\n"
+
+
+            "### Appendix (Expression Codes)\n"
+
+            "Happy: 320:200|322:150|300:125|311:100|301:150\n"
+            "Fear: 320:0|322:125|300:200|302:200|311:100\n"
+            "Sad: 300:200\n"
+            "Disgust: 320:0|322:125|300:200|301:50|311:100\n"
+            "Surprise: 322:200|301:200|300:175\n"
+            "Neutral: 300:100|301:100|311:100|320:100|322:100\n\n"
+
+
+            "### Example Response (Exemplar)\n"
+
+            "{\"Expression\": \"Expression smile\",\n"
+            "\"Thoughts\": \"User mentioned cooking, I’ll joke about burning toast while acting confident\",\n"
+            "\"Speech\": \"Oh, you cook? Amazing. When I cook, the smoke alarm files a restraining order against me.\n"
+    }
+]
 
 # FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
 CHUNK = 1024
-DURATION = 5
+DURATION = 15
 FILENAME = "user_recording.wav"
 
 def record_audio():
@@ -54,15 +100,15 @@ def transcribe_audio():
         return transcript.text
 
 def send_to_LLM(user_input):
+    conversation.append({"role": "user", "content": user_input})
     response = openai.chat.completions.create(
         model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a funny robot named Milo. Make jokes on the user as they talk"},
-            {"role": "user", "content": user_input}
-        ]
+        messages=conversation
     )
-    print(response.choices[0].message.content)
-    return response.choices[0].message.content
+    assistant_message = response.choices[0].message.content
+    conversation.append({"role": "assistant", "content": assistant_message})
+    print(assistant_message)
+    return assistant_message
 
 def send_to_milo(message):
     try:
@@ -71,7 +117,8 @@ def send_to_milo(message):
                 # command = input("Enter command to Milo (or 'exit'): ")
                 # if command.strip().lower() == "exit":
                 #     break
-            sock.sendall((message + "\n").encode('utf-8'))
+            payload = json.dumps(message, ensure_ascii=False) + "\n"
+            sock.sendall((payload).encode('utf-8'))
     except Exception as e:
         print("Socket error:", e)
 
@@ -83,6 +130,7 @@ def main():
             record_audio()
             text = transcribe_audio()
             response = send_to_LLM(text)
+            response = json.loads(response)
             send_to_milo(response)
         elif cmd == "quit":
             print("Exiting.")
